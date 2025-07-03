@@ -2,35 +2,25 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Criar pasta uploads/ se não existir
-const uploadDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
+// Cria pasta 'uploads' se não existir
+const dir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
 }
 
-// Configuração de armazenamento
+// Configuração do multer
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
+    destination: (req, file, cb) => {
+        cb(null, dir);
     },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    filename: (req, file, cb) => {
+        const timestamp = Date.now();
         const ext = path.extname(file.originalname);
-        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+        const nomeArquivo = `${file.fieldname}-${timestamp}${ext}`;
+        cb(null, nomeArquivo);
     }
 });
 
-// Filtro de tipo de arquivo (opcional)
-const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowedTypes.includes(ext)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Tipo de arquivo não permitido'), false);
-    }
-};
-
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage });
 
 module.exports = upload;
