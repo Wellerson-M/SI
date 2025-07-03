@@ -20,6 +20,7 @@ export default function LoginPage() {
 
       const token = response.data.token
       localStorage.setItem('token', token)
+      
 
       router.push('/dashboard')
     } catch (err: any) {
