@@ -43,8 +43,10 @@ export default function Dashboard() {
 
             <ul>
                 <li><a href="/submitExpense">➕ Criar novo relatório</a></li>
+                <li><a href="/sign-expense"> 📄 Ver relatórios não assinados</a></li>
                 <li><a href="/signedExpenses">📄 Ver relatórios assinados</a></li>
-                <li><a href="/verifySignature">🔍 Verificar integridade</a></li>
+                <li><a href="/validateExpense"> 📄 Validar relatorio</a></li>
+                <li><a href="/verifySignature"> 📄 Verificar integridade</a></li>
             </ul>
         </div>
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   TextField,
@@ -29,19 +29,46 @@ export default function SubmitExpensePage() {
   const [data, setData] = useState('');
   const [categoria, setCategoria] = useState('');
   const [recibo, setRecibo] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
+
+  // Verificação de autenticação ao carregar a página
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+    } else {
+      setUser({ nome: 'Usuário logado' }); // pode ser substituído por dados reais depois
+    }
+    setCheckingAuth(false);
+  }, []);
+
+  // Redirecionando...
+  if (checkingAuth) {
+    return <p>Verificando autenticação...</p>;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     const token = localStorage.getItem('token');
     if (!token) {
       alert('Você precisa estar logado.');
       router.push('/login');
+      setLoading(false);
       return;
     }
 
     if (!categoria) {
       alert('Por favor, selecione uma categoria.');
+      setLoading(false);
       return;
     }
 
@@ -55,26 +82,33 @@ export default function SubmitExpensePage() {
       formData.append('recibo', recibo);
     }
 
-    const response = await fetch('http://localhost:5000/api/relatorios', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
+    try {
+      const response = await fetch('http://localhost:5000/api/relatorios', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
-    if (response.ok) {
-      alert('Relatório enviado com sucesso!');
-      setTitulo('');
-      setConteudo('');
-      setValor('');
-      setData('');
-      setCategoria('');
-      setRecibo(null);
-      router.push('/dashboard');
-    } else {
-      const error = await response.json();
-      alert(`Erro: ${error.erro || 'Falha ao enviar relatório'}`);
+      if (response.ok) {
+        alert('Relatório enviado com sucesso!');
+        setTitulo('');
+        setConteudo('');
+        setValor('');
+        setData('');
+        setCategoria('');
+        setRecibo(null);
+        router.push('/dashboard');
+      } else {
+        const error = await response.json();
+        alert(`Erro: ${error.erro || 'Falha ao enviar relatório'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar relatório:', error);
+      alert('Erro de conexão ou servidor.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -166,8 +200,15 @@ export default function SubmitExpensePage() {
           )}
         </Box>
 
-        <Button variant="contained" color="primary" type="submit" size="large" fullWidth>
-          Enviar
+        <Button 
+          variant="contained" 
+          color="primary" 
+          type="submit" 
+          size="large" 
+          fullWidth
+          disabled={loading}
+        >
+          {loading ? 'Enviando...' : 'Enviar'}
         </Button>
       </form>
     </Box>
